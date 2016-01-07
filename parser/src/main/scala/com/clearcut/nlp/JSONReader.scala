@@ -23,9 +23,7 @@ class JSONReader(input:Source, docIdKeys:Array[String], documentKey:String)
     var n:(Array[String], String) = null
     while (n == null && it.hasNext) {
       val (line, num) = it.next
-
       val jsObj = Json.parse(line).asInstanceOf[JsObject]
-
       val maybeDocumentIds = new Array[String](docIdKeys.length)
       docIdKeys.zipWithIndex.foreach { case (idk, i) =>
         val maybeDocumentId = jsObj.value.get(idk);
@@ -35,8 +33,9 @@ class JSONReader(input:Source, docIdKeys:Array[String], documentKey:String)
           case (_) =>
             maybeDocumentIds(i) = "\\N"
         }
-      }
 
+      }
+      try {
       val maybeDocumentStr = jsObj.value.get(documentKey).map(_.asInstanceOf[JsString].value)
 
       (maybeDocumentIds, maybeDocumentStr) match {
@@ -46,6 +45,9 @@ class JSONReader(input:Source, docIdKeys:Array[String], documentKey:String)
         //  System.err.println(s"Warning: skipped malformed line ${num}: ${line}")
         case (_, None) =>
           System.err.println(s"Warning: skipped malformed line ${num}: ${line}")
+      }}
+      catch {
+      case e: Exception => System.err.println(s"cast exception caught") 
       }
     }
     n
